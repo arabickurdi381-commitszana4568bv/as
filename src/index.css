@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --studio-canvas: #070910;
+    --studio-surface: #0d1221;
+    --studio-elevated: #141b31;
+    --studio-border: rgba(148, 163, 184, 0.14);
+    --studio-accent: #8b5cf6;
+    --studio-accent-blue: #3b82f6;
+  }
+
+  body {
+    font-family: 'Vazirmatn', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #070910;
+    color: #f1f5f9;
+    overflow-x: hidden;
+  }
+
+  .font-mono-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Custom studio scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #070910;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #232d4b;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #364570;
+}
+
+/* Clean custom range slider styling */
+input[type="range"] {
+  accent-color: #8b5cf6;
+}

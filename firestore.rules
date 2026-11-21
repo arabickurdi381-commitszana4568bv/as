@@ -1,0 +1,261 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core Primitives
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Validation Blueprint: UserProfile
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+        'ownerId', 'displayName', 'email', 'plan',
+        'defaultDialect', 'defaultFormat', 'defaultSpeed',
+        'adaptationEnabled', 'charactersUsed', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'displayName', 'email', 'plan',
+        'defaultDialect', 'defaultFormat', 'defaultSpeed',
+        'adaptationEnabled', 'charactersUsed', 'createdAt', 'updatedAt'
+      ])
+      && data.ownerId is string
+      && isValidId(data.ownerId)
+      && data.ownerId == request.auth.uid
+      && data.ownerId == userId
+      && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+      && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+      && data.plan in ['free', 'creator', 'studio']
+      && data.defaultDialect in ['duhok', 'zakho', 'amedi', 'akre']
+      && data.defaultFormat in ['wav', 'mp3']
+      && data.defaultSpeed is number && data.defaultSpeed >= 0.5 && data.defaultSpeed <= 2.0
+      && data.adaptationEnabled is bool
+      && data.charactersUsed is int && data.charactersUsed >= 0 && data.charactersUsed <= 100000000
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: VoiceProfile
+    function isValidVoiceProfile(data) {
+      return data.keys().hasAll([
+        'ownerId', 'name', 'gender', 'ageGroup', 'region',
+        'baseVoice', 'pitchShift', 'timbrePrompt', 'sampleTranscription',
+        'lexiconRules', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'name', 'gender', 'ageGroup', 'region',
+        'baseVoice', 'pitchShift', 'timbrePrompt', 'sampleTranscription',
+        'lexiconRules', 'createdAt', 'updatedAt'
+      ])
+      && data.ownerId is string
+      && isValidId(data.ownerId)
+      && data.ownerId == request.auth.uid
+      && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
+      && data.gender in ['male', 'female']
+      && data.ageGroup is string && data.ageGroup.size() >= 1 && data.ageGroup.size() <= 40
+      && data.region in ['duhok', 'zakho', 'amedi', 'akre']
+      && data.baseVoice in ['Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr']
+      && data.pitchShift is number && data.pitchShift >= -12 && data.pitchShift <= 12
+      && data.timbrePrompt is string && data.timbrePrompt.size() >= 1 && data.timbrePrompt.size() <= 600
+      && data.sampleTranscription is string && data.sampleTranscription.size() <= 1000
+      && data.lexiconRules is list
+      && data.lexiconRules.size() <= 25
+      && (data.lexiconRules.size() == 0 || (data.lexiconRules[0] is string && data.lexiconRules[0].size() <= 200))
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: AudioProject
+    function isValidAudioProject(data) {
+      return data.keys().hasAll([
+        'ownerId', 'title', 'projectType', 'category', 'emotion',
+        'dialectRegion', 'scriptText', 'linesCount', 'totalDurationSec',
+        'bgMusicPreset', 'sfxPreset', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'title', 'projectType', 'category', 'emotion',
+        'dialectRegion', 'scriptText', 'linesCount', 'totalDurationSec',
+        'bgMusicPreset', 'sfxPreset', 'createdAt', 'updatedAt'
+      ])
+      && data.ownerId is string
+      && isValidId(data.ownerId)
+      && data.ownerId == request.auth.uid
+      && data.title is string && data.title.size() >= 1 && data.title.size() <= 140
+      && data.projectType in ['tts', 'story', 'dialogue']
+      && data.category is string && data.category.size() >= 1 && data.category.size() <= 80
+      && data.emotion is string && data.emotion.size() >= 1 && data.emotion.size() <= 40
+      && data.dialectRegion in ['duhok', 'zakho', 'amedi', 'akre']
+      && data.scriptText is string && data.scriptText.size() >= 1 && data.scriptText.size() <= 12000
+      && data.linesCount is int && data.linesCount >= 0 && data.linesCount <= 200
+      && data.totalDurationSec is number && data.totalDurationSec >= 0 && data.totalDurationSec <= 7200
+      && data.bgMusicPreset is string && data.bgMusicPreset.size() <= 60
+      && data.sfxPreset is string && data.sfxPreset.size() <= 60
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: AudioScene
+    function isValidAudioScene(data, projectId) {
+      return data.keys().hasAll([
+        'ownerId', 'projectId', 'orderIndex', 'characterName', 'voiceId',
+        'baseVoice', 'emotion', 'pauseSec', 'isNarration', 'text',
+        'adaptedText', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'ownerId', 'projectId', 'orderIndex', 'characterName', 'voiceId',
+        'baseVoice', 'emotion', 'pauseSec', 'isNarration', 'text',
+        'adaptedText', 'createdAt', 'updatedAt'
+      ])
+      && data.ownerId is string
+      && isValidId(data.ownerId)
+      && data.ownerId == request.auth.uid
+      && data.projectId is string
+      && isValidId(data.projectId)
+      && data.projectId == projectId
+      && data.orderIndex is int && data.orderIndex >= 0 && data.orderIndex <= 500
+      && data.characterName is string && data.characterName.size() >= 1 && data.characterName.size() <= 80
+      && data.voiceId is string && data.voiceId.size() >= 1 && data.voiceId.size() <= 80
+      && data.baseVoice in ['Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr']
+      && data.emotion is string && data.emotion.size() >= 1 && data.emotion.size() <= 40
+      && data.pauseSec is number && data.pauseSec >= 0 && data.pauseSec <= 10
+      && data.isNarration is bool
+      && data.text is string && data.text.size() >= 1 && data.text.size() <= 2000
+      && data.adaptedText is string && data.adaptedText.size() <= 2400
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    // Collection: users/{userId} (Strict PII Isolation)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if false;
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && request.auth.uid == userId
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && request.auth.uid == userId
+        && existing().ownerId == request.auth.uid
+        && isValidUserProfile(incoming(), userId)
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'displayName', 'defaultDialect', 'defaultFormat', 'defaultSpeed', 'adaptationEnabled', 'updatedAt'
+          ])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['plan', 'updatedAt'])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['charactersUsed', 'updatedAt'])
+        );
+      allow delete: if false;
+    }
+
+    // Collection: voiceProfiles/{profileId}
+    match /voiceProfiles/{profileId} {
+      allow get: if isSignedIn() && isValidId(profileId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isVerifiedUser()
+        && isValidId(profileId)
+        && isValidVoiceProfile(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(profileId)
+        && existing().ownerId == request.auth.uid
+        && isValidVoiceProfile(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'gender', 'ageGroup', 'region', 'baseVoice', 'pitchShift', 'timbrePrompt', 'sampleTranscription', 'lexiconRules', 'updatedAt'
+          ])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['lexiconRules', 'updatedAt'])
+        );
+      allow delete: if isVerifiedUser() && isValidId(profileId) && existing().ownerId == request.auth.uid;
+    }
+
+    // Collection: audioProjects/{projectId}
+    match /audioProjects/{projectId} {
+      allow get: if isSignedIn() && isValidId(projectId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isVerifiedUser()
+        && isValidId(projectId)
+        && isValidAudioProject(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(projectId)
+        && existing().ownerId == request.auth.uid
+        && isValidAudioProject(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'category', 'emotion', 'dialectRegion', 'scriptText', 'linesCount', 'totalDurationSec', 'bgMusicPreset', 'sfxPreset', 'updatedAt'
+          ])
+        );
+      allow delete: if isVerifiedUser() && isValidId(projectId) && existing().ownerId == request.auth.uid;
+
+      // Subcollection: scenes/{sceneId} (Master Gate Relational Sync)
+      match /scenes/{sceneId} {
+        allow get: if isSignedIn()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && existing().ownerId == request.auth.uid
+          && get(/databases/$(database)/documents/audioProjects/$(projectId)).data.ownerId == request.auth.uid;
+        allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+        allow create: if isVerifiedUser()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && isValidAudioScene(incoming(), projectId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/audioProjects/$(projectId))
+          && get(/databases/$(database)/documents/audioProjects/$(projectId)).data.ownerId == request.auth.uid;
+        allow update: if isVerifiedUser()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && existing().ownerId == request.auth.uid
+          && isValidAudioScene(incoming(), projectId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().projectId == existing().projectId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && get(/databases/$(database)/documents/audioProjects/$(projectId)).data.ownerId == request.auth.uid
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'orderIndex', 'characterName', 'voiceId', 'baseVoice', 'emotion', 'pauseSec', 'isNarration', 'text', 'adaptedText', 'updatedAt'
+          ]);
+        allow delete: if isVerifiedUser()
+          && isValidId(projectId)
+          && isValidId(sceneId)
+          && existing().ownerId == request.auth.uid
+          && get(/databases/$(database)/documents/audioProjects/$(projectId)).data.ownerId == request.auth.uid;
+      }
+    }
+  }
+}

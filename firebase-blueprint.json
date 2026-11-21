@@ -1,0 +1,316 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private studio user profile, settings, and subscription plan",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["free", "creator", "studio"]
+        },
+        "defaultDialect": {
+          "type": "string",
+          "enum": ["duhok", "zakho", "amedi", "akre"]
+        },
+        "defaultFormat": {
+          "type": "string",
+          "enum": ["wav", "mp3"]
+        },
+        "defaultSpeed": {
+          "type": "number"
+        },
+        "adaptationEnabled": {
+          "type": "boolean"
+        },
+        "charactersUsed": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "displayName",
+        "email",
+        "plan",
+        "defaultDialect",
+        "defaultFormat",
+        "defaultSpeed",
+        "adaptationEnabled",
+        "charactersUsed",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "VoiceProfile": {
+      "title": "VoiceProfile",
+      "description": "Custom trained and adapted Kurdish Badini voice profile",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "gender": {
+          "type": "string",
+          "enum": ["male", "female"]
+        },
+        "ageGroup": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "region": {
+          "type": "string",
+          "enum": ["duhok", "zakho", "amedi", "akre"]
+        },
+        "baseVoice": {
+          "type": "string",
+          "enum": ["Puck", "Charon", "Kore", "Fenrir", "Zephyr"]
+        },
+        "pitchShift": {
+          "type": "number"
+        },
+        "timbrePrompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "sampleTranscription": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "lexiconRules": {
+          "type": "array"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "name",
+        "gender",
+        "ageGroup",
+        "region",
+        "baseVoice",
+        "pitchShift",
+        "timbrePrompt",
+        "sampleTranscription",
+        "lexiconRules",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AudioProject": {
+      "title": "AudioProject",
+      "description": "Saved Badini TTS clip, AI story, or multi-character audio drama project",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "projectType": {
+          "type": "string",
+          "enum": ["tts", "story", "dialogue"]
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "emotion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "dialectRegion": {
+          "type": "string",
+          "enum": ["duhok", "zakho", "amedi", "akre"]
+        },
+        "scriptText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12000
+        },
+        "linesCount": {
+          "type": "integer"
+        },
+        "totalDurationSec": {
+          "type": "number"
+        },
+        "bgMusicPreset": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "sfxPreset": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "title",
+        "projectType",
+        "category",
+        "emotion",
+        "dialectRegion",
+        "scriptText",
+        "linesCount",
+        "totalDurationSec",
+        "bgMusicPreset",
+        "sfxPreset",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AudioScene": {
+      "title": "AudioScene",
+      "description": "Individual dialogue or narration line inside an AudioProject",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "orderIndex": {
+          "type": "integer"
+        },
+        "characterName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "voiceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "baseVoice": {
+          "type": "string",
+          "enum": ["Puck", "Charon", "Kore", "Fenrir", "Zephyr"]
+        },
+        "emotion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "pauseSec": {
+          "type": "number"
+        },
+        "isNarration": {
+          "type": "boolean"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "adaptedText": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "projectId",
+        "orderIndex",
+        "characterName",
+        "voiceId",
+        "baseVoice",
+        "emotion",
+        "pauseSec",
+        "isNarration",
+        "text",
+        "adaptedText",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user settings, plan tier, and usage profile"
+    },
+    "/voiceProfiles/{profileId}": {
+      "schema": { "$ref": "#/entities/VoiceProfile" },
+      "description": "Custom trained Badini voice profiles owned by users"
+    },
+    "/audioProjects/{projectId}": {
+      "schema": { "$ref": "#/entities/AudioProject" },
+      "description": "Saved TTS, AI Story, and Multi-Character Studio projects"
+    },
+    "/audioProjects/{projectId}/scenes/{sceneId}": {
+      "schema": { "$ref": "#/entities/AudioScene" },
+      "description": "Individual dialogue and narration scenes belonging to a project"
+    }
+  }
+}
